@@ -1,0 +1,30 @@
+﻿@inherits BaseComponent<WebLogViewModel>
+
+<div style="height:25rem; overflow-y: auto">
+    <QuickGrid Items="@ViewModel.DataStore.Entries.AsQueryable()" Virtualize="true">
+        <PropertyColumn Title="EventId" Class="p-2" Property="st => st.EventId" Align="Align.Right" />
+        <PropertyColumn Title="Timestamp" Class="p-2" Property="st => st.Timestamp" Align="Align.Right" />
+        <TemplateColumn Title="Log Level" Align="Align.Right">
+            <div style="background-color: @(context.Color.CssBackgroundColor)">
+                @context.LogLevel
+            </div>
+        </TemplateColumn>
+        <PropertyColumn Title="Message" Class="p-2" Property="st => st.State" Align="Align.Right" />
+        <PropertyColumn Title="Exception" Class="p-2" Property="st => st.Exception" Align="Align.Right" />
+    </QuickGrid>
+</div>
+
+
+
+@code 
+{
+    protected override void OnInitialized()
+    {
+        ViewModel.DataStore.Entries.CollectionChanged += (_, _) => StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        ViewModel.DataStore.Entries.CollectionChanged -= (_, _) => StateHasChanged();
+    }
+}
