@@ -1,16 +1,30 @@
-﻿@inherits BaseComponent<WebLogViewModel>
+﻿@using global::Shared.Models
+@inherits BaseComponent<WebLogViewModel>
+
+
+<div class="row mb-3 justify-content-start">
+    <div class="col-3">
+        <select @bind="@_logLvl" class="form-select">
+            @foreach (var level in Enum.GetValues<LogLevel>())
+            {
+                <option>@level</option>
+                
+            }
+        </select>
+    </div>
+</div>
 
 <div style="height:25rem; overflow-y: auto">
-    <QuickGrid Items="@ViewModel.DataStore.Entries.AsQueryable()" Virtualize="true">
-        <PropertyColumn Title="EventId" Class="p-2" Property="st => st.EventId" Align="Align.Right" />
-        <PropertyColumn Title="Timestamp" Class="p-2" Property="st => st.Timestamp" Align="Align.Right" />
-        <TemplateColumn Title="Log Level" Align="Align.Right">
-            <div style="background-color: @(context.Color.CssBackgroundColor)">
+    <QuickGrid Items="@FilteredItems" Virtualize="true" Class="table table-bordered">
+        <PropertyColumn Title="EventId" Class="p-2" Property="st => st.EventId" Align="Align.Right"/>
+        <PropertyColumn Title="Timestamp" Class="p-2" Property="st => st.Timestamp" Align="Align.Right"/>
+        <TemplateColumn Title="Log Level" Class="p-2" Align="Align.Center">
+            <div style="background-color: @(context.Color.CssBackgroundColor); border-radius: 10px; text-align: center">
                 @context.LogLevel
             </div>
         </TemplateColumn>
-        <PropertyColumn Title="Message" Class="p-2" Property="st => st.State" Align="Align.Right" />
-        <PropertyColumn Title="Exception" Class="p-2" Property="st => st.Exception" Align="Align.Right" />
+        <PropertyColumn Title="Message" Class="p-2" Property="st => st.State" Align="Align.Right"/>
+        <PropertyColumn Title="Exception" Class="p-2" Property="st => st.Exception" Align="Align.Right"/>
     </QuickGrid>
 </div>
 
@@ -18,8 +32,30 @@
 
 @code 
 {
+    private IQueryable<LogModel>? _items;
+    
+    private LogLevel _logLvl;
+
+    IQueryable<LogModel> FilteredItems
+    {
+        get
+        {
+            var result = _items;
+            
+            if (_logLvl != LogLevel.None)
+            {
+                result = _items?.Where(c => c.LogLevel == _logLvl) ?? _items;
+            }
+
+            return result;
+        }
+    }
     protected override void OnInitialized()
     {
+        _items = ViewModel.DataStore.Entries.AsQueryable();
+
+        _logLvl = LogLevel.None;
+
         ViewModel.DataStore.Entries.CollectionChanged += (_, _) => StateHasChanged();
     }
 

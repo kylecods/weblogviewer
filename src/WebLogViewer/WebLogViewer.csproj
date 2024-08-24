@@ -12,6 +12,8 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.6" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.6" PrivateAssets="all" />
 	<PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+	<PackageReference Include="PureBlazor.Components" Version="0.31.0" />
+	<PackageReference Include="PureBlazor.Components.Icons" Version="0.31.0" />
   </ItemGroup>
 
   <ItemGroup>

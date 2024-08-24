@@ -5,3 +5,8 @@
     outline: 1px solid gray;
     z-index: 1;
 }
+
+::deep tr {
+    height: 30px;
+    border-bottom: 0.5px solid silver;
+}

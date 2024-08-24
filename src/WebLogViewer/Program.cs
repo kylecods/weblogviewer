@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Pure.Blazor.Components;
 using Shared.Data;
 using Shared.MsLogger.Extensions;
 using WebLogViewer.ViewModels;
@@ -20,6 +21,8 @@ namespace WebLogViewer
 
             builder.Services.AddSingleton<IDataStore, LogDataStore>();
             builder.Services.AddSingleton<WebLogViewModel>();
+            
+            builder.AddPureBlazorComponents();
 
             var host = builder.Build();
 
@@ -33,6 +36,7 @@ namespace WebLogViewer
                 logger.LogInformation(count++,"Test info logs ---{DateTime}---", DateTime.UtcNow);
                 logger.LogWarning(count++, "Test warning logs ---{DateTime}---", DateTime.UtcNow);
                 logger.LogError(count++, "Test error logs ---{DateTime}---", DateTime.UtcNow);
+                logger.LogError(count++, new ArgumentNullException(nameof(Program)),"Test error logs with exception ---{DateTime}---", DateTime.UtcNow);
             };
             timer.Enabled = true;
             timer.Start();
