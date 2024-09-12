@@ -1,0 +1,17 @@
+﻿syntax = "proto3";
+
+package proto;
+import "google/protobuf/timestamp.proto";
+
+message FileRequest {
+  string file_path = 1;
+}
+
+message FileResponse {
+  google.protobuf.Timestamp timeStamp = 1;
+  string content = 2;
+}
+
+service FileService {
+  rpc Fetch(FileRequest) returns (FileResponse);
+}

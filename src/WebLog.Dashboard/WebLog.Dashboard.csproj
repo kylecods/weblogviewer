@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+      <PackageReference Include="Grpc.AspNetCore" Version="2.65.0" />
+      <PackageReference Include="Grpc.Net.Client.Web" Version="2.65.0" />
+      <PackageReference Include="Grpc.Net.ClientFactory" Version="2.65.0" />
+      <PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid" Version="8.0.8" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Shared\Shared.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Protobuf Include="FileLog\**\*.proto">
+        <ProtoRoot>FileLog</ProtoRoot>
+      </Protobuf>
+    </ItemGroup>
+
+</Project>

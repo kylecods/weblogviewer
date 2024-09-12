@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileLogServer", "FileLogServer\FileLogServer.csproj", "{60269396-3645-4851-88F3-17F1D53FCB03}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csproj", "{3ECDEF2A-1EDB-4874-A296-604E07B94A82}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebLog.Dashboard", "WebLog.Dashboard\WebLog.Dashboard.csproj", "{47CF2F7F-C547-4FFC-A960-BF0911A777D2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{60269396-3645-4851-88F3-17F1D53FCB03}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{60269396-3645-4851-88F3-17F1D53FCB03}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{60269396-3645-4851-88F3-17F1D53FCB03}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{60269396-3645-4851-88F3-17F1D53FCB03}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3ECDEF2A-1EDB-4874-A296-604E07B94A82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3ECDEF2A-1EDB-4874-A296-604E07B94A82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3ECDEF2A-1EDB-4874-A296-604E07B94A82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3ECDEF2A-1EDB-4874-A296-604E07B94A82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47CF2F7F-C547-4FFC-A960-BF0911A777D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47CF2F7F-C547-4FFC-A960-BF0911A777D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47CF2F7F-C547-4FFC-A960-BF0911A777D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47CF2F7F-C547-4FFC-A960-BF0911A777D2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
