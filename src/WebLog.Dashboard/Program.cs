@@ -1,7 +1,6 @@
 using Grpc.Net.Client.Web;
 using Proto;
 using Shared.Data;
-using WebLog.Dashboard;
 using WebLog.Dashboard.Components;
 using WebLog.Dashboard.ViewModels;
 
@@ -15,7 +14,7 @@ builder.Services.AddSingleton<IDataStore, LogDataStore>();
 builder.Services.AddSingleton<WebLogViewModel>();
 builder.Services.AddGrpcClient<FileService.FileServiceClient>(options =>
 {
-    options.Address = new Uri("http://localhost:5267");
+    options.Address = new Uri("http://localhost:5000");
 }).ConfigurePrimaryHttpMessageHandler(
     () => new GrpcWebHandler(new HttpClientHandler()));
 

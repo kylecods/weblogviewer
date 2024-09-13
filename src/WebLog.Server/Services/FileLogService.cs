@@ -3,7 +3,7 @@ using Grpc.Core;
 using Proto;
 using Shared.FileLogs;
 
-namespace FileLogServer.Services;
+namespace WebLog.Server.Services;
 
 public class FileLogService : FileService.FileServiceBase
 {

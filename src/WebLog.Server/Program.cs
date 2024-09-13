@@ -1,8 +1,12 @@
-﻿using FileLogServer.Services;
+﻿using WebLog.Server;
+using WebLog.Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddGrpc();
+
+builder.Services.AddWindowsService();
+builder.Services.AddHostedService<ServerWorker>();
 
 builder.Services.AddCors(o => o.AddPolicy("AllowAll", builder =>
 {
@@ -20,10 +24,6 @@ app.UseCors();
 app.MapGrpcService<FileLogService>().EnableGrpcWeb().RequireCors("AllowAll");
 
 app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client");
-
-
-
-
 
 app.Run();
 

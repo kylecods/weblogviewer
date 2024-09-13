@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileLogServer", "FileLogServer\FileLogServer.csproj", "{60269396-3645-4851-88F3-17F1D53FCB03}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebLog.Server", "WebLog.Server\WebLog.Server.csproj", "{60269396-3645-4851-88F3-17F1D53FCB03}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csproj", "{3ECDEF2A-1EDB-4874-A296-604E07B94A82}"
 EndProject
