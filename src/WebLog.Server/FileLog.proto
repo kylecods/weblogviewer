@@ -10,8 +10,21 @@ message FileRequest {
 message FileResponse {
   google.protobuf.Timestamp timeStamp = 1;
   string content = 2;
+    LogLevel log_level = 3;
+}
+
+enum LogLevel{
+    Debug = 0;
+    Information =1;
+    Warning = 2;
+    Error = 3;
+    None = 4;
+}
+
+message FileResult {
+  repeated FileResponse log_lines = 1;
 }
 
 service FileService {
-  rpc Fetch(FileRequest) returns (FileResponse);
+  rpc Fetch(FileRequest) returns (stream FileResult);
 }

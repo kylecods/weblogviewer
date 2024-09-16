@@ -1,5 +1,13 @@
-﻿@using global::Shared.Models
-@inherits BaseComponent<WebLogViewModel>
+﻿@inherits BaseComponent<WebLogViewModel>
+@using System.Collections.ObjectModel
+@using System.Threading.Channels
+@using global::Shared.Extensions
+@using global::Shared.Models
+@using Grpc.Core
+@using Proto
+@using LogLevel = Proto.LogLevel;
+@using MsLogLevel = Microsoft.Extensions.Logging.LogLevel;
+@rendermode InteractiveServer
 
 
 <div class="row mb-3 justify-content-start">
@@ -32,35 +40,119 @@
 
 @code 
 {
+    [Inject]
+    FileService.FileServiceClient Client { get; init; }
+    
     private IQueryable<LogModel>? _items;
     
-    private LogLevel _logLvl;
+    private MsLogLevel _logLvl;
+
+    private ObservableCollection<LogModel> _entries = [];
 
     IQueryable<LogModel> FilteredItems
     {
         get
         {
-            var result = _items;
-            
-            if (_logLvl != LogLevel.None)
-            {
-                result = _items?.Where(c => c.LogLevel == _logLvl) ?? _items;
-            }
+            var entries =     _entries.AsQueryable();
 
-            return result;
+            if (_logLvl != default)
+            {
+                entries = entries.Where(x => x.LogLevel == _logLvl).AsQueryable();
+            }
+            
+            return entries;
+            
         }
     }
-    protected override void OnInitialized()
+    
+
+    protected override async Task OnInitializedAsync()
     {
-        _items = ViewModel.DataStore.Entries.AsQueryable();
+                
+        var call = Client.Fetch(new FileRequest { FilePath = "C:\\Chui_logs\\Chui-winsvc-log-20240912_009.log" });
 
-        _logLvl = LogLevel.None;
-
-        ViewModel.DataStore.Entries.CollectionChanged += (_, _) => StateHasChanged();
+        await foreach (var logs in call.ResponseStream.ReadAllAsync())
+        {
+            await foreach (var batch in SetLogModel(logs))
+            {
+                foreach (var logModel in batch)
+                {
+                    _entries.Add(logModel);
+                }
+                
+                StateHasChanged();
+            
+            }
+           
+        }
     }
 
-    public void Dispose()
+
+    private async IAsyncEnumerable<IReadOnlyList<LogModel>> SetLogModel(FileResult? logs)
     {
-        ViewModel.DataStore.Entries.CollectionChanged -= (_, _) => StateHasChanged();
+        var channel = Channel.CreateUnbounded<IReadOnlyList<LogModel>>(
+            new UnboundedChannelOptions { AllowSynchronousContinuations = false, SingleReader = true, SingleWriter = true });
+        var logColors = new Dictionary<MsLogLevel, LogColor>
+        {
+            [MsLogLevel.Information] = new () { CssBackgroundColor = "#AAFF00" },
+            [MsLogLevel.Error] = new() { CssBackgroundColor = "#EE4B2B" },
+            [MsLogLevel.Warning] = new() { CssBackgroundColor = "#ffbd33" },
+            [MsLogLevel.None] = new() { CssBackgroundColor = "#ffbd33" },
+            [MsLogLevel.Debug] = new() { CssBackgroundColor = "#ffbd33" }
+        };
+        
+        var readTask = Task.Run(() =>
+        {
+            try
+            {
+                    var logLines = new LogModel[logs.LogLines.Count];
+
+        
+                    for (var index = 0; index < logs.LogLines.Count; index++)
+                    {
+                        var response = logs.LogLines[index];
+                        var logLevel = response.LogLevel switch
+                        {
+                            LogLevel.Information => MsLogLevel.Information,
+                            LogLevel.Debug => MsLogLevel.Debug,
+                            LogLevel.Warning => MsLogLevel.Warning,
+                            LogLevel.Error => MsLogLevel.Error,
+                            LogLevel.None => MsLogLevel.None,
+                            _ => MsLogLevel.Critical
+                        };
+
+                        logLines[index] = new LogModel
+                        {
+                            Color = logColors[logLevel],
+                            LogLevel = logLevel,
+                            Timestamp = response.TimeStamp.ToDateTime(),
+                            State = response.Content
+                        };
+                    }
+
+                    // Channel is unbound so TryWrite always succeeds.
+                    channel.Writer.TryWrite(logLines);
+                
+            }
+            finally
+            {
+                channel.Writer.TryComplete();
+            }
+        });
+
+        await foreach (var batch in channel.GetBatchesAsync())
+        {
+            if (batch.Count == 1)
+            {
+                yield return batch[0];
+            }
+            else
+            {
+                yield return batch.SelectMany(b => b).ToList();
+            }
+        }
+
+        await readTask;
+
     }
 }

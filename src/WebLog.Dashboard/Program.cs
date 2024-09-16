@@ -14,7 +14,7 @@ builder.Services.AddSingleton<IDataStore, LogDataStore>();
 builder.Services.AddSingleton<WebLogViewModel>();
 builder.Services.AddGrpcClient<FileService.FileServiceClient>(options =>
 {
-    options.Address = new Uri("http://localhost:5000");
+    options.Address = new Uri("http://localhost:5267");
 }).ConfigurePrimaryHttpMessageHandler(
     () => new GrpcWebHandler(new HttpClientHandler()));
 
@@ -38,11 +38,5 @@ app.UseAntiforgery();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-
-var client = app.Services.GetRequiredService<FileService.FileServiceClient>();
-
-var response = await client.FetchAsync(new FileRequest { FilePath = "C:\\Chui_logs\\Chui-winsvc-log-20240912_011.log"});
-
-app.Logger.LogInformation("{Timestamp} {Message}",response.TimeStamp,response.Content);
 
 app.Run();

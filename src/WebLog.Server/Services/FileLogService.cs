@@ -2,19 +2,36 @@
 using Grpc.Core;
 using Proto;
 using Shared.FileLogs;
+using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace WebLog.Server.Services;
 
 public class FileLogService : FileService.FileServiceBase
 {
-    public override Task<FileResponse> Fetch(FileRequest request, ServerCallContext context)
+    public override async Task Fetch(FileRequest request, IServerStreamWriter<FileResult> responseStream, ServerCallContext context)
     {
-        var result = FileLogReader.Read(request.FilePath);
-
-        return Task.FromResult(new FileResponse
+        await foreach (var logLines in FileLogReader.ReadAsync(request.FilePath).ConfigureAwait(false))
         {
-            Content = result[0].Item1,
-            TimeStamp = result[0].Item2.ToUniversalTime().ToTimestamp()
-        });
+            var result = new FileResult();
+
+            foreach (var (lineNumber,content,logLevel, timestamp) in logLines)
+            {
+                result.LogLines.Add(new FileResponse
+                {
+                    Content = content,
+                    TimeStamp = timestamp?.ToUniversalTime().ToTimestamp() ?? DateTime.UtcNow.ToTimestamp(),
+                    LogLevel = logLevel switch
+                    {
+                        LogLevel.Information => Proto.LogLevel.Information,
+                        LogLevel.Debug => Proto.LogLevel.Debug,
+                        LogLevel.Warning => Proto.LogLevel.Warning,
+                        LogLevel.Error => Proto.LogLevel.Error,
+                        _ => Proto.LogLevel.None
+                    }
+                });
+            }
+
+            await responseStream.WriteAsync(result).ConfigureAwait(false);
+        }
     }
 }

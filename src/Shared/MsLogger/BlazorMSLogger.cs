@@ -22,18 +22,15 @@ namespace Shared.MsLogger
 			}
 
 			var config = configuration();
-
-			var response = client.GetFromJsonAsync<FileLogReader.DateTimeResult>("http://localhost:5267/file-log-reader").GetAwaiter().GetResult();
-			
 			
 			dataStore.AddEntry(new LogModel
 			{
 				EventId = eventId.Id,
 				LogLevel = logLevel,
-				Timestamp = response.timestamp,
+				Timestamp = DateTime.Now,
                 Color = config.LogColors[logLevel],
 				State = state,
-				Exception = exception?.Message ?? response.ModifiedText,
+				Exception = exception?.Message ?? DateTime.Now.ToString(),
             });
         }
 	}

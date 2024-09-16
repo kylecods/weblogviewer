@@ -53,15 +53,5 @@ public class FileLogClient
 
         _client = new FileService.FileServiceClient(_channel);
     }
-
-    public async Task<FileResponse> FetchLogs(string path)
-    {
-        var request = new FileRequest
-        {
-            FilePath = path
-        };
-        var response = await _client.FetchAsync(request);
-
-        return response;
-    }
+    
 }

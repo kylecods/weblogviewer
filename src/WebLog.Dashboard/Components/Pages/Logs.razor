@@ -1,4 +1,12 @@
 ﻿@page "/"
+@using System.Threading.Channels
+@using Grpc.Core
+@using Shared.Models
+@using Proto
+@using Shared.Data
+@using Shared.Extensions
+@using LogLevel = Proto.LogLevel;
+@using MsLogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 <PageTitle>Logs</PageTitle>
 
