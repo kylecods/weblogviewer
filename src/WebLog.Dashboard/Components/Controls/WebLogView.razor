@@ -23,8 +23,8 @@
 </div>
 
 <div style="height:25rem; overflow-y: auto">
-    <QuickGrid Items="@FilteredItems" Virtualize="true" Class="table table-bordered">
-        <PropertyColumn Title="EventId" Class="p-2" Property="st => st.EventId" Align="Align.Right"/>
+    <QuickGrid Items="@FilteredItems" Virtualize="true" ItemKey="@(p => p.LineNumber)" ItemSize="20" Class="table table-bordered">
+        <PropertyColumn Title="Line number" Class="p-2" Property="st => st.LineNumber" Align="Align.Right"/>
         <PropertyColumn Title="Timestamp" Class="p-2" Property="st => st.Timestamp" Align="Align.Right"/>
         <TemplateColumn Title="Log Level" Class="p-2" Align="Align.Center">
             <div style="background-color: @(context.Color.CssBackgroundColor); border-radius: 10px; text-align: center">
@@ -32,7 +32,6 @@
             </div>
         </TemplateColumn>
         <PropertyColumn Title="Message" Class="p-2" Property="st => st.State" Align="Align.Right"/>
-        <PropertyColumn Title="Exception" Class="p-2" Property="st => st.Exception" Align="Align.Right"/>
     </QuickGrid>
 </div>
 
@@ -45,7 +44,7 @@
     
     private IQueryable<LogModel>? _items;
     
-    private MsLogLevel _logLvl;
+    private MsLogLevel _logLvl = default;
 
     private ObservableCollection<LogModel> _entries = [];
 
@@ -53,7 +52,7 @@
     {
         get
         {
-            var entries =     _entries.AsQueryable();
+            var entries =  _entries.AsQueryable();
 
             if (_logLvl != default)
             {
@@ -64,12 +63,10 @@
             
         }
     }
-    
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
-                
-        var call = Client.Fetch(new FileRequest { FilePath = "C:\\Chui_logs\\Chui-winsvc-log-20240912_009.log" });
+        var call = Client.Fetch(new FileRequest { FilePath = "C:\\Chui_logs\\Chui-winsvc-log-20240917_003.log"});
 
         await foreach (var logs in call.ResponseStream.ReadAllAsync())
         {
@@ -87,6 +84,10 @@
         }
     }
 
+    protected override void OnInitialized()
+    {
+        
+    }
 
     private async IAsyncEnumerable<IReadOnlyList<LogModel>> SetLogModel(FileResult? logs)
     {
@@ -97,7 +98,7 @@
             [MsLogLevel.Information] = new () { CssBackgroundColor = "#AAFF00" },
             [MsLogLevel.Error] = new() { CssBackgroundColor = "#EE4B2B" },
             [MsLogLevel.Warning] = new() { CssBackgroundColor = "#ffbd33" },
-            [MsLogLevel.None] = new() { CssBackgroundColor = "#ffbd33" },
+            [MsLogLevel.None] = new() { CssBackgroundColor = "#5F9EA0" },
             [MsLogLevel.Debug] = new() { CssBackgroundColor = "#ffbd33" }
         };
         
@@ -105,7 +106,7 @@
         {
             try
             {
-                    var logLines = new LogModel[logs.LogLines.Count];
+                    var logLines = new LogModel[logs!.LogLines.Count];
 
         
                     for (var index = 0; index < logs.LogLines.Count; index++)
@@ -126,7 +127,8 @@
                             Color = logColors[logLevel],
                             LogLevel = logLevel,
                             Timestamp = response.TimeStamp.ToDateTime(),
-                            State = response.Content
+                            State = response.Content,
+                            LineNumber = response.LineNumber
                         };
                     }
 

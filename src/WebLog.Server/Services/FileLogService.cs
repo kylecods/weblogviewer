@@ -27,7 +27,8 @@ public class FileLogService : FileService.FileServiceBase
                         LogLevel.Warning => Proto.LogLevel.Warning,
                         LogLevel.Error => Proto.LogLevel.Error,
                         _ => Proto.LogLevel.None
-                    }
+                    },
+                    LineNumber = lineNumber
                 });
             }
 

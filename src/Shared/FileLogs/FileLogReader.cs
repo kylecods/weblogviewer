@@ -71,6 +71,31 @@ public static partial class FileLogReader
 
                 return true;
             }
+            
+            bool TryRemoveBrackets(string text, out string? final)
+            {
+                //parse timestamp
+                var match = MatchBrackets().Match(text);
+
+                if (!match.Success)
+                {
+                    final = null;
+                    
+                    return false;
+                }
+                var span = text.AsSpan();
+
+                ReadOnlySpan<char> content = span[(match.Index + match.Length)..];
+                
+                if (char.IsWhiteSpace(content[0]))
+                {
+                    content = content.Slice(1);
+                }
+
+                final = content.ToString();
+                
+                return true;
+            }
 
             static LogLine[] ToLogLineArray(IReadOnlyList<LogLine> lines)
             {
@@ -88,7 +113,18 @@ public static partial class FileLogReader
             {
                 try
                 {
-                    await foreach (var fileLine in File.ReadLinesAsync(path))
+                    string logContent = await File.ReadAllTextAsync(path);
+
+                    // Regex to find timestamps in the log
+                    string timestampPattern = @"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} [+-]\d{2}:\d{2}";
+
+                    // Replace newlines that are NOT followed by a timestamp with a space (to keep the content on one line)
+                    logContent = Regex.Replace(logContent, $@"\n(?!{timestampPattern})", " ",RegexOptions.Compiled);
+                    
+                    var logEntries = Regex.Split(logContent, $"(?={timestampPattern})",RegexOptions.Compiled);
+
+                    
+                    foreach (var fileLine in logEntries)
                     {
                         var content = fileLine;
 
@@ -110,7 +146,13 @@ public static partial class FileLogReader
                             content = logLevelResult.Value.Content;
                         }
 
-                        LogLine logLine = new(lineNumber,content, logLevel, timestamp);
+                        if (TryRemoveBrackets(content, out var finalContent))
+                        {
+                            content = finalContent;
+                        }
+
+                        LogLine logLine = new(lineNumber, content!, logLevel, timestamp);
+                        
                         channel.Writer.TryWrite(logLine);
 
                         lineNumber++;
@@ -138,6 +180,9 @@ public static partial class FileLogReader
     
     [GeneratedRegex(@"(\[(Information|Debug|Error)\])")]
     private static partial Regex MatchLogLevel();
+    
+    [GeneratedRegex(@"(\[\])")]
+    private static partial Regex MatchBrackets();
     
     public record struct TimeParseResult(string ModifiedText, DateTime timestamp);
     

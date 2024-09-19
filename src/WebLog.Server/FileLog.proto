@@ -10,7 +10,8 @@ message FileRequest {
 message FileResponse {
   google.protobuf.Timestamp timeStamp = 1;
   string content = 2;
-    LogLevel log_level = 3;
+  LogLevel log_level = 3;
+  int32 line_number = 4;
 }
 
 enum LogLevel{

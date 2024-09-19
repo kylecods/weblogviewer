@@ -15,5 +15,7 @@ namespace Shared.Models
         public object? State { get; set; }
 
         public string? Exception { get; set; }
+        
+        public int LineNumber { get; set; }
     }
 }
