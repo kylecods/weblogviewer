@@ -3,7 +3,12 @@ using WebLog.Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddGrpc();
+builder.Services.AddGrpc(options =>
+{
+    options.EnableDetailedErrors = true;
+    options.MaxReceiveMessageSize = 40 * 1024 * 1024; // 2 MB
+    options.MaxSendMessageSize = 50 * 1024 * 1024; // 5 MB
+});
 
 builder.Services.AddWindowsService();
 builder.Services.AddHostedService<ServerWorker>();

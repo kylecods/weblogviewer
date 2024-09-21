@@ -1,3 +1,4 @@
+using Grpc.Net.Client;
 using Grpc.Net.Client.Web;
 using Proto;
 using Shared.Data;
@@ -15,7 +16,14 @@ builder.Services.AddSingleton<WebLogViewModel>();
 builder.Services.AddGrpcClient<FileService.FileServiceClient>(options =>
 {
     options.Address = new Uri("http://localhost:5267");
-}).ConfigurePrimaryHttpMessageHandler(
+    
+}) .ConfigureChannel(options => 
+{  
+    options.MaxReceiveMessageSize = 40 * 1024 * 1024; 
+    options.MaxSendMessageSize = 50 * 1024 * 1024; 
+})
+    
+    .ConfigurePrimaryHttpMessageHandler(
     () => new GrpcWebHandler(new HttpClientHandler()));
 
 builder.Services.AddGrpc();

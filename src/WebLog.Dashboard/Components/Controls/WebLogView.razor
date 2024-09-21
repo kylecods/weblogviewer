@@ -11,7 +11,7 @@
 
 
 <div class="row mb-3 justify-content-start">
-    <div class="col-3">
+    <div class="col-6">
         <select @bind="@_logLvl" class="form-select">
             @foreach (var level in Enum.GetValues<LogLevel>())
             {
@@ -20,10 +20,25 @@
             }
         </select>
     </div>
+    <div class="col-6">
+        <input class="form-control" type="search" @bind="_searchText" placeholder="Search here"/>
+    </div>
+</div>
+
+<div class="row">
+    <div class="page-size-chooser">
+        Items per page:
+        <select @bind="@pagination.ItemsPerPage">
+            <option>5</option>
+            <option>10</option>
+            <option>20</option>
+            <option>50</option>
+        </select>
+    </div>
 </div>
 
 <div style="height:25rem; overflow-y: auto">
-    <QuickGrid Items="@FilteredItems" Virtualize="true" ItemKey="@(p => p.LineNumber)" ItemSize="20" Class="table table-bordered">
+    <QuickGrid Items="@FilteredItems" Pagination="@pagination" Class="table table-bordered">
         <PropertyColumn Title="Line number" Class="p-2" Property="st => st.LineNumber" Align="Align.Right"/>
         <PropertyColumn Title="Timestamp" Class="p-2" Property="st => st.Timestamp" Align="Align.Right"/>
         <TemplateColumn Title="Log Level" Class="p-2" Align="Align.Center">
@@ -36,15 +51,21 @@
 </div>
 
 
+<Paginator State="@pagination" />
+
 
 @code 
 {
     [Inject]
     FileService.FileServiceClient Client { get; init; }
     
+    private PaginationState pagination = new () { ItemsPerPage = 10 };
+    
     private IQueryable<LogModel>? _items;
     
     private MsLogLevel _logLvl = default;
+
+    private string _searchText;
 
     private ObservableCollection<LogModel> _entries = [];
 
@@ -58,6 +79,11 @@
             {
                 entries = entries.Where(x => x.LogLevel == _logLvl).AsQueryable();
             }
+
+            if (!string.IsNullOrEmpty(_searchText))
+            {
+                entries = entries.Where(x => x.State!.ToString()!.Contains(_searchText)).AsQueryable();
+            }
             
             return entries;
             
@@ -66,7 +92,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        var call = Client.Fetch(new FileRequest { FilePath = "C:\\Chui_logs\\Chui-winsvc-log-20240917_003.log"});
+        var call = Client.Fetch(new FileRequest { FilePath = string.Empty});
 
         await foreach (var logs in call.ResponseStream.ReadAllAsync())
         {

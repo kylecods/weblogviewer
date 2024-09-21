@@ -10,3 +10,9 @@
     height: 30px;
     border-bottom: 0.5px solid silver;
 }
+
+.page-size-chooser {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
