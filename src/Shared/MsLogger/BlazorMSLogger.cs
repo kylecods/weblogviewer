@@ -20,13 +20,22 @@ namespace Shared.MsLogger
 			{
 				return;
 			}
+			
+			var finalLogLevel = logLevel switch
+			{
+				LogLevel.Information => FileLogLevel.Information,
+				LogLevel.Debug => FileLogLevel.Debug,
+				LogLevel.Warning => FileLogLevel.Warning,
+				LogLevel.Error => FileLogLevel.Error,
+				_ => FileLogLevel.None
+			};
 
 			var config = configuration();
 			
 			dataStore.AddEntry(new LogModel
 			{
 				EventId = eventId.Id,
-				LogLevel = logLevel,
+				LogLevel = finalLogLevel,
 				Timestamp = DateTime.Now,
                 Color = config.LogColors[logLevel],
 				State = state,

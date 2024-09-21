@@ -11,8 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddSingleton<IDataStore, LogDataStore>();
-builder.Services.AddSingleton<WebLogViewModel>();
+builder.Services.AddTransient<IDataStore,LogDataStore>();
+builder.Services.AddTransient<WebLogViewModel>();
 builder.Services.AddGrpcClient<FileService.FileServiceClient>(options =>
 {
     options.Address = new Uri("http://localhost:5267");

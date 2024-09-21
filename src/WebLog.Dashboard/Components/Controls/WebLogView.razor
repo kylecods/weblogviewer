@@ -1,186 +1,87 @@
 ﻿@inherits BaseComponent<WebLogViewModel>
-@using System.Collections.ObjectModel
-@using System.Threading.Channels
-@using global::Shared.Extensions
 @using global::Shared.Models
-@using Grpc.Core
-@using Proto
-@using LogLevel = Proto.LogLevel;
-@using MsLogLevel = Microsoft.Extensions.Logging.LogLevel;
 @rendermode InteractiveServer
 
-
 <div class="row mb-3 justify-content-start">
-    <div class="col-6">
-        <select @bind="@_logLvl" class="form-select">
-            @foreach (var level in Enum.GetValues<LogLevel>())
-            {
-                <option>@level</option>
+        <div class="col-6">
+            <select @bind="@ViewModel.LogLevel" class="form-select" @bind:after="() => ViewModel.DropDownChangeCommand.Execute(null)">
+                @foreach (var level in Enum.GetValues<FileLogLevel>().Where(x => x != FileLogLevel.None))
+                {
+                    <option>@level</option>
                 
-            }
-        </select>
+                }
+            </select>
+        </div>
+        <div class="col-6">
+            <input class="form-control" type="search" @bind="ViewModel.SearchText" @onkeyup="() => ViewModel.SearchChangeCommand.Execute(null)" placeholder="Search here"/>
+        </div>
     </div>
-    <div class="col-6">
-        <input class="form-control" type="search" @bind="_searchText" placeholder="Search here"/>
-    </div>
-</div>
 
-<div class="row">
-    <div class="page-size-chooser">
-        Items per page:
-        <select @bind="@pagination.ItemsPerPage">
-            <option>5</option>
-            <option>10</option>
-            <option>20</option>
-            <option>50</option>
-        </select>
+@if (ViewModel.Logs.Any())
+{
+    <div class="row">
+        <div class="page-size-chooser">
+            Items per page:
+            <select @bind="@_pagination.ItemsPerPage">
+                <option>5</option>
+                <option>10</option>
+                <option>20</option>
+                <option>50</option>
+            </select>
+        </div>
     </div>
-</div>
+}
 
 <div style="height:25rem; overflow-y: auto">
-    <QuickGrid Items="@FilteredItems" Pagination="@pagination" Class="table table-bordered">
-        <PropertyColumn Title="Line number" Class="p-2" Property="st => st.LineNumber" Align="Align.Right"/>
-        <PropertyColumn Title="Timestamp" Class="p-2" Property="st => st.Timestamp" Align="Align.Right"/>
-        <TemplateColumn Title="Log Level" Class="p-2" Align="Align.Center">
-            <div style="background-color: @(context.Color.CssBackgroundColor); border-radius: 10px; text-align: center">
-                @context.LogLevel
+    @if (ViewModel.IsNotBusy)
+    {
+        @if (ViewModel.Logs.Any())
+        {
+            <QuickGrid Items="ViewModel.Logs" Pagination="@_pagination" Class="table table-bordered">
+                <PropertyColumn Title="Line number" Class="p-2" Property="st => st.LineNumber" Align="Align.Right"/>
+                <PropertyColumn Title="Timestamp" Class="p-2" Property="st => st.Timestamp" Align="Align.Right"/>
+                <TemplateColumn Title="Log Level" Class="p-2" Align="Align.Center">
+                    <div style="background-color: @(context.Color.CssBackgroundColor); border-radius: 10px; text-align: center">
+                        <span style="color:@(context.Color.CssForegroundColor); font-size: small; font-weight: bold; padding: 5px">@context.LogLevel.ToString("G").ToUpper()</span>
+                    </div>
+                </TemplateColumn>
+                <PropertyColumn Title="Message" Class="p-2" Property="st => st.State" Align="Align.Right"/>
+            </QuickGrid>
+        }
+        else
+        {
+            <div class="row justify-content-center" style="height: 100%; width: 100%">
+                <div class="col-6 align-items-center position-relative">
+                    <span class="position-absolute top-50 start-50 translate-middle" style="font-size: large; font-weight: bolder;">No data</span>
+                </div>
             </div>
-        </TemplateColumn>
-        <PropertyColumn Title="Message" Class="p-2" Property="st => st.State" Align="Align.Right"/>
-    </QuickGrid>
+        }
+    }
+    else
+    {
+        <div class="row justify-content-center" style="height: 100%; width: 100%">
+            <div class="col-6 align-items-center position-relative">
+                <span class="position-absolute top-50 start-50 translate-middle" style="font-size: large; font-weight: bolder;">Loading...</span>
+            </div>
+        </div>
+    }
+    
 </div>
 
 
-<Paginator State="@pagination" />
-
+@if (ViewModel.Logs.Any())
+{
+    <Paginator State="@_pagination"/>
+}
 
 @code 
 {
-    [Inject]
-    FileService.FileServiceClient Client { get; init; }
+    private PaginationState _pagination = new () { ItemsPerPage = 10 };
     
-    private PaginationState pagination = new () { ItemsPerPage = 10 };
     
-    private IQueryable<LogModel>? _items;
-    
-    private MsLogLevel _logLvl = default;
-
-    private string _searchText;
-
-    private ObservableCollection<LogModel> _entries = [];
-
-    IQueryable<LogModel> FilteredItems
-    {
-        get
-        {
-            var entries =  _entries.AsQueryable();
-
-            if (_logLvl != default)
-            {
-                entries = entries.Where(x => x.LogLevel == _logLvl).AsQueryable();
-            }
-
-            if (!string.IsNullOrEmpty(_searchText))
-            {
-                entries = entries.Where(x => x.State!.ToString()!.Contains(_searchText)).AsQueryable();
-            }
-            
-            return entries;
-            
-        }
-    }
-
-    protected override async Task OnParametersSetAsync()
-    {
-        var call = Client.Fetch(new FileRequest { FilePath = string.Empty});
-
-        await foreach (var logs in call.ResponseStream.ReadAllAsync())
-        {
-            await foreach (var batch in SetLogModel(logs))
-            {
-                foreach (var logModel in batch)
-                {
-                    _entries.Add(logModel);
-                }
-                
-                StateHasChanged();
-            
-            }
-           
-        }
-    }
-
     protected override void OnInitialized()
     {
-        
-    }
-
-    private async IAsyncEnumerable<IReadOnlyList<LogModel>> SetLogModel(FileResult? logs)
-    {
-        var channel = Channel.CreateUnbounded<IReadOnlyList<LogModel>>(
-            new UnboundedChannelOptions { AllowSynchronousContinuations = false, SingleReader = true, SingleWriter = true });
-        var logColors = new Dictionary<MsLogLevel, LogColor>
-        {
-            [MsLogLevel.Information] = new () { CssBackgroundColor = "#AAFF00" },
-            [MsLogLevel.Error] = new() { CssBackgroundColor = "#EE4B2B" },
-            [MsLogLevel.Warning] = new() { CssBackgroundColor = "#ffbd33" },
-            [MsLogLevel.None] = new() { CssBackgroundColor = "#5F9EA0" },
-            [MsLogLevel.Debug] = new() { CssBackgroundColor = "#ffbd33" }
-        };
-        
-        var readTask = Task.Run(() =>
-        {
-            try
-            {
-                    var logLines = new LogModel[logs!.LogLines.Count];
-
-        
-                    for (var index = 0; index < logs.LogLines.Count; index++)
-                    {
-                        var response = logs.LogLines[index];
-                        var logLevel = response.LogLevel switch
-                        {
-                            LogLevel.Information => MsLogLevel.Information,
-                            LogLevel.Debug => MsLogLevel.Debug,
-                            LogLevel.Warning => MsLogLevel.Warning,
-                            LogLevel.Error => MsLogLevel.Error,
-                            LogLevel.None => MsLogLevel.None,
-                            _ => MsLogLevel.Critical
-                        };
-
-                        logLines[index] = new LogModel
-                        {
-                            Color = logColors[logLevel],
-                            LogLevel = logLevel,
-                            Timestamp = response.TimeStamp.ToDateTime(),
-                            State = response.Content,
-                            LineNumber = response.LineNumber
-                        };
-                    }
-
-                    // Channel is unbound so TryWrite always succeeds.
-                    channel.Writer.TryWrite(logLines);
-                
-            }
-            finally
-            {
-                channel.Writer.TryComplete();
-            }
-        });
-
-        await foreach (var batch in channel.GetBatchesAsync())
-        {
-            if (batch.Count == 1)
-            {
-                yield return batch[0];
-            }
-            else
-            {
-                yield return batch.SelectMany(b => b).ToList();
-            }
-        }
-
-        await readTask;
-
+        base.OnInitialized();
+        ViewModel.LoadItemsCommand.Execute(null);
     }
 }

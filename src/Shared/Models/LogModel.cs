@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-
-namespace Shared.Models
+﻿namespace Shared.Models
 {
 	public sealed record LogModel
 	{
@@ -8,7 +6,7 @@ namespace Shared.Models
 
 		public DateTime Timestamp { get; set; }
 
-		public LogLevel LogLevel { get; set; }
+		public FileLogLevel LogLevel { get; set; }
 
 		public LogColor Color { get; set; }
 
