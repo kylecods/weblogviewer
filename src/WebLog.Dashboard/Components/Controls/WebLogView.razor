@@ -2,8 +2,8 @@
 @using global::Shared.Models
 @rendermode InteractiveServer
 
-<div class="row mb-3 justify-content-start">
-        <div class="col-6">
+<div class="row mb-3 justify-content-between">
+        <div class="col-lg-4 col-md-4 col-sm-12">
             <select @bind="@ViewModel.LogLevel" class="form-select" @bind:after="() => ViewModel.DropDownChangeCommand.Execute(null)">
                 @foreach (var level in Enum.GetValues<FileLogLevel>().Where(x => x != FileLogLevel.None))
                 {
@@ -12,10 +12,14 @@
                 }
             </select>
         </div>
-        <div class="col-6">
-            <input class="form-control" type="search" @bind="ViewModel.SearchText" @onkeyup="() => ViewModel.SearchChangeCommand.Execute(null)" placeholder="Search here"/>
+        <div class="col-lg-4 col-md-4 col-sm-12">
+            <input class="form-control" type="search" @bind="ViewModel.SearchText" @bind:event="oninput" @bind:after="() => ViewModel.SearchChangeCommand.Execute(null)" placeholder="Message"/>
         </div>
-    </div>
+
+        <div class="col-lg-4 col-md-4 col-sm-12">
+            <input class="form-control" type="date" @bind="ViewModel.DateTime" @bind:event="onchange" @bind:after="() => ViewModel.DateInputChangeCommand.Execute(null)" placeholder="Search here"/>
+        </div>
+</div>
 
 @if (ViewModel.Logs.Any())
 {
@@ -45,7 +49,9 @@
                         <span style="color:@(context.Color.CssForegroundColor); font-size: small; font-weight: bold; padding: 5px">@context.LogLevel.ToString("G").ToUpper()</span>
                     </div>
                 </TemplateColumn>
-                <PropertyColumn Title="Message" Class="p-2" Property="st => st.State" Align="Align.Right"/>
+                <TemplateColumn Title="Message" Class="p-2" Align="Align.Right">
+                    <span style="width: 20ch;">@(context.State!.ToString()!.Length > 50 ? $"{context.State.ToString().AsSpan().Slice(0,50)}..." : context.State)</span>
+                </TemplateColumn>
             </QuickGrid>
         }
         else
@@ -83,5 +89,6 @@
     {
         base.OnInitialized();
         ViewModel.LoadItemsCommand.Execute(null);
+        ViewModel.DateTime = DateTime.Today;
     }
 }

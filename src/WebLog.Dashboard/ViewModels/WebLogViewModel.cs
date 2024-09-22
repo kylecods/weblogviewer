@@ -15,6 +15,8 @@ namespace WebLog.Dashboard.ViewModels
 		[ObservableProperty]private FileLogLevel _logLevel;
     
 		[ObservableProperty] private string? _searchText;
+
+		[ObservableProperty] private DateTime _dateTime;
 		
 
 		[RelayCommand]
@@ -51,7 +53,7 @@ namespace WebLog.Dashboard.ViewModels
 		{
 			Logs = !string.IsNullOrEmpty(SearchText) ? 
 				Logs.Where(x => x.State!.ToString()!.Contains(SearchText)).AsQueryable() : 
-				Enumerable.Empty<LogModel>().AsQueryable();
+				dataStore.Entries.AsQueryable();
 		}
 		
 		[RelayCommand]
@@ -60,6 +62,21 @@ namespace WebLog.Dashboard.ViewModels
 			Logs = LogLevel != FileLogLevel.All ? 
 				Logs.Where(x => x.LogLevel == LogLevel).AsQueryable() : 
 				dataStore.Entries.AsQueryable();
+		}
+		
+		[RelayCommand]
+		private void OnDateInputChange()
+		{
+			if (DateTime != default)
+			{
+				Logs = Logs.Where(x => x.Timestamp.Date == DateTime.Date).AsQueryable();
+			}
+			else
+			{
+				Logs = dataStore.Entries.AsQueryable();
+				DateTime = DateTime.Today;
+			}
+
 		}
 
 		
