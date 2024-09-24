@@ -1,5 +1,6 @@
 using Grpc.Net.Client;
 using Grpc.Net.Client.Web;
+using Microsoft.FluentUI.AspNetCore.Components;
 using Proto;
 using Shared.Data;
 using WebLog.Dashboard.Components;
@@ -27,6 +28,9 @@ builder.Services.AddGrpcClient<FileService.FileServiceClient>(options =>
     () => new GrpcWebHandler(new HttpClientHandler()));
 
 builder.Services.AddGrpc();
+
+builder.Services.AddFluentUIComponents();
+
 
 var app = builder.Build();
 

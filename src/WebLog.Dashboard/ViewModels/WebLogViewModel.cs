@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Grpc.Core;
+using Microsoft.FluentUI.AspNetCore.Components;
 using Proto;
 using Shared.Data;
 using Shared.Extensions;
@@ -17,6 +18,8 @@ namespace WebLog.Dashboard.ViewModels
 		[ObservableProperty] private string? _searchText;
 
 		[ObservableProperty] private DateTime _dateTime;
+
+		[ObservableProperty] private string? _filePath;
 		
 
 		[RelayCommand]
@@ -27,7 +30,8 @@ namespace WebLog.Dashboard.ViewModels
 			{
 				var call = client.Fetch(new FileRequest
 				{
-					FilePath = "C:\\Users\\Kyle.rotich\\Documents\\HELPER_SQL_SCRIPTS\\api-mobile-log-20240915.log"
+					FilePath = FilePath ?? "C:\\Chui_logs\\Chui-winsvc-log-20240923_003.log"
+					           //"C:\\Users\\Kyle.rotich\\Documents\\HELPER_SQL_SCRIPTS\\api-mobile-log-20240915.log"
 				});
 
 				await foreach (var logs in call.ResponseStream.ReadAllAsync())
@@ -77,6 +81,43 @@ namespace WebLog.Dashboard.ViewModels
 				DateTime = DateTime.Today;
 			}
 
+		}
+
+		[RelayCommand]
+		private async Task OnClick(FluentDialog? myFluentDialog)
+		{
+			Logs = Enumerable.Empty<LogModel>().AsQueryable();
+			
+			//we clear what ever is existing in the data store
+			dataStore.Entries.Clear();
+			
+			await IsBusyFor(async () =>
+			{
+				if (!string.IsNullOrEmpty(FilePath))
+				{
+					var call = client.Fetch(new FileRequest
+					{
+						FilePath = FilePath
+					});
+
+					await foreach (var logs in call.ResponseStream.ReadAllAsync())
+					{
+						await foreach (var batch in SetLogModel(logs))
+						{
+							foreach (var logModel in batch)
+							{
+								dataStore.Entries.Add(logModel);
+							}
+
+						}
+
+					}
+				}
+			});
+			
+			Logs = dataStore.Entries.AsQueryable();
+
+			myFluentDialog!.Hide();
 		}
 
 		
