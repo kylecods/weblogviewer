@@ -1,4 +1,10 @@
 # WebLogViewer
-Custom Blazor Web Log Viewer
+Custom Blazor Web File Log Viewer
 
-![screenshot](/assets/images/app.png)
+## ScreenShots
+
+![screenshot](/assets/images/datatable.png)
+
+![screenshot1](/assets/images/add_file_path.png)
+
+![screenshot2](/assets/images/view_more.png)

@@ -20,7 +20,8 @@ namespace WebLog.Dashboard.ViewModels
 		[ObservableProperty] private DateTime _dateTime;
 
 		[ObservableProperty] private string? _filePath;
-		
+
+		[ObservableProperty] private string? _content;
 
 		[RelayCommand]
 		private async Task LoadItems()
@@ -83,8 +84,9 @@ namespace WebLog.Dashboard.ViewModels
 
 		}
 
+
 		[RelayCommand]
-		private async Task OnClick(FluentDialog? myFluentDialog)
+		private async Task OnClick(FluentDialog? fluentDialog)
 		{
 			Logs = Enumerable.Empty<LogModel>().AsQueryable();
 			
@@ -116,8 +118,6 @@ namespace WebLog.Dashboard.ViewModels
 			});
 			
 			Logs = dataStore.Entries.AsQueryable();
-
-			myFluentDialog!.Hide();
 		}
 
 		

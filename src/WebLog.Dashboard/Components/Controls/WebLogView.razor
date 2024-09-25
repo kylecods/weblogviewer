@@ -25,7 +25,7 @@
 </div>
 <div class="row justify-content-end" style="width: 100%">
     <div class="col-3">
-        <FluentButton Style="float: right" Appearance="Appearance.Accent" OnClick="@(() => OnOpen())" Value="Add File" IconStart="new Icons.Regular.Size24.Add()">
+        <FluentButton Style="float: right" Appearance="Appearance.Accent" OnClick="OnOpen" Value="Add File" IconStart="new Icons.Regular.Size24.Add()">
             Add Path
         </FluentButton>
     </div>
@@ -38,19 +38,23 @@
     {
         @if (ViewModel.Logs.Any())
         {
-            <FluentDataGrid Items="@ViewModel.Logs" Virtualize="true">
+            <FluentDataGrid Items="@ViewModel.Logs" Virtualize="true" ItemSize="44">
                 <PropertyColumn Title="Line" Property="@(p => p.LineNumber)" Width="130px"/>
                 <PropertyColumn Title="Date" Property="@(p => p.Timestamp)" Sortable="true" Width="200px"/>
-                <TemplateColumn Title="Log Level" Class="p-2" Width="150px">
+                <TemplateColumn Title="Log Level" Class="px-4" Width="150px">
                     <div style="background-color: @(context.Color.CssBackgroundColor); border-radius: 10px; text-align: center">
                         <span style="color:@(context.Color.CssForegroundColor); font-size: small; font-weight: bold; padding: 5px">@context.LogLevel.ToString("G").ToUpper()</span>
                     </div>
                 </TemplateColumn>
-                <TemplateColumn Title="Message" Class="p-2">
+                <TemplateColumn Title="Message" >
                     <span style="width: 20ch;">@(context.State!.ToString()!.Length > 50 ? $"{context.State.ToString().AsSpan().Slice(0,50)}..." : context.State)</span>
+                </TemplateColumn>
+                <TemplateColumn Title="Actions" Width="150px">
+                    <FluentButton aria-label="View More" IconEnd="@(_showMore ? new Icons.Filled.Size16.EyeOff() : new Icons.Filled.Size16.Eye())" OnClick="@(() => OnOpenViewMore(context))"/>
                 </TemplateColumn>
             </FluentDataGrid>
         }
+        
         else
         {
             <div class="row justify-content-center" style="height: 100%; width: 100%">
@@ -72,7 +76,7 @@
 </div>
 
 
-<FluentDialog @ref="_myFluentDialog" @bind-Hidden="@Hidden" aria-label="Simple dialog" Modal=@_modal TrapFocus=@_trapFocus PreventScroll=@_preventScroll @ondialogdismiss=OnDismiss>
+<FluentDialog @ref="@_fluentDialog" @bind-Hidden="@_hidden" aria-label="Simple dialog" Modal="true" TrapFocus="true" PreventScroll="true" @ondialogdismiss="OnDismiss">
     <FluentDialogHeader Visible="false" />
     <h3>Add Path</h3>
     <div class="row mb-3">
@@ -80,20 +84,36 @@
             <input type="text" class="form-control" @bind="@ViewModel.FilePath" placeholder="File Path"/>
         </div>
     </div>
-    <FluentButton Appearance="Appearance.Accent" Autofocus="true" @onclick="@(() => ViewModel.ClickCommand.Execute(_myFluentDialog))">Load</FluentButton>
+    <div style="display: flex; width: 100%">
+        <FluentButton Appearance="Appearance.Accent" Autofocus="true" @onclick="@(() => ViewModel.ClickCommand.Execute(_fluentDialog))">Load</FluentButton>
+        <FluentSpacer />
+        <FluentButton OnClick="OnDismiss">Cancel</FluentButton>
+    </div>
+</FluentDialog>
 
+<FluentDialog @ref="@_viewMoreDialog" @bind-Hidden="@_viewMoreHidden" aria-label="Simple dialog" Modal="true" TrapFocus="true" PreventScroll="true" @ondialogdismiss="OnDismissViewMore">
+    <FluentDialogHeader Visible="false" />
+    <h3>View More</h3>
+    <FluentTextArea @bind-Value="@ViewModel.Content" Resize="TextAreaResize.Vertical" style="width: 100%;" Appearance="FluentInputAppearance.Filled" Placeholder="Placeholder"/>
+    <div style="display: flex; width: 100%; margin-top: 10px">
+        <FluentSpacer />
+        <FluentButton OnClick="OnDismissViewMore">Close</FluentButton>
+    </div>
 </FluentDialog>
 
 
 @code 
 {
-    private FluentDialog? _myFluentDialog;
-    private bool _trapFocus = true;
-    private bool _modal = true;
-    private bool _preventScroll = true;
-    private string? _status;
-    private bool Hidden { get; set; } = true;
+    private FluentDialog _fluentDialog;
+    
+    private FluentDialog _viewMoreDialog;
 
+    private bool _viewMoreHidden = true;
+
+    private bool _hidden = true;
+
+    private bool _showMore = false;
+    
     protected override void OnInitialized()
     {
         base.OnInitialized();
@@ -106,23 +126,53 @@
     {
         if (firstRender)
         {
-            _myFluentDialog!.Hide();
+            _fluentDialog.Hide();
+            _viewMoreDialog.Hide();
         }
     }
-
-    private void OnOpen()
+    
+    private void OnOpen(MouseEventArgs args)
     {
-        _status = "Dialog opened with button click";
-        _myFluentDialog!.Show();
-        Debug.WriteLine(_status);
-
+        _fluentDialog.Show();
+    }
+    
+    private void OnDismiss(MouseEventArgs args)
+    {
+        ViewModel.FilePath = null;
+        _fluentDialog.CancelAsync();
     }
     
     private void OnDismiss(DialogEventArgs args)
     {
-        if (args is not null && args.Reason is not null && args.Reason == "dismiss")
-        {
-            _myFluentDialog!.Hide();
-        }
+        ViewModel.FilePath = null;
+        _fluentDialog.CancelAsync();
+    }
+    
+    private void OnOpenViewMore(LogModel logModel)
+    {
+        _showMore = !_showMore;
+
+        ViewModel.Content = logModel.State!.ToString();
+        
+        _viewMoreDialog.Show();
+        
+    }
+    
+    private void OnDismissViewMore(MouseEventArgs args)
+    {
+        _showMore = !_showMore;
+
+        ViewModel.Content = null;
+        
+        _viewMoreDialog.CancelAsync();
+    }
+    
+    private void OnDismissViewMore(DialogEventArgs args)
+    {
+        _showMore = !_showMore;
+        
+        ViewModel.Content = null;
+
+        _viewMoreDialog.CancelAsync();
     }
 }
