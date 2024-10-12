@@ -31,8 +31,7 @@ namespace WebLog.Dashboard.ViewModels
 			{
 				var call = client.Fetch(new FileRequest
 				{
-					FilePath = FilePath ?? "C:\\Chui_logs\\Chui-winsvc-log-20240923_003.log"
-					           //"C:\\Users\\Kyle.rotich\\Documents\\HELPER_SQL_SCRIPTS\\api-mobile-log-20240915.log"
+					FilePath = FilePath ?? string.Empty
 				});
 
 				await foreach (var logs in call.ResponseStream.ReadAllAsync())
@@ -92,7 +91,7 @@ namespace WebLog.Dashboard.ViewModels
 			
 			//we clear what ever is existing in the data store
 			dataStore.Entries.Clear();
-			
+			fluentDialog!.Hide();
 			await IsBusyFor(async () =>
 			{
 				if (!string.IsNullOrEmpty(FilePath))
@@ -117,7 +116,9 @@ namespace WebLog.Dashboard.ViewModels
 				}
 			});
 			
+			
 			Logs = dataStore.Entries.AsQueryable();
+		
 		}
 
 		

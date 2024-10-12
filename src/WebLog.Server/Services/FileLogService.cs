@@ -6,14 +6,23 @@ using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace WebLog.Server.Services;
 
-public class FileLogService : FileService.FileServiceBase
+public class FileLogService(ILogger<FileLogService> logger) : FileService.FileServiceBase
 {
     public override async Task Fetch(FileRequest request, IServerStreamWriter<FileResult> responseStream, ServerCallContext context)
     {
+        var result = new FileResult();
+        
+        if (!File.Exists(request.FilePath))
+        {
+            logger.LogError("NO FILE FOUND");
+            
+            await responseStream.WriteAsync(result).ConfigureAwait(false);
+            
+            return;
+        }
+        
         await foreach (var logLines in FileLogReader.ReadAsync(request.FilePath).ConfigureAwait(false))
         {
-            var result = new FileResult();
-
             foreach (var (lineNumber,content,logLevel, timestamp) in logLines)
             {
                 result.LogLines.Add(new FileResponse

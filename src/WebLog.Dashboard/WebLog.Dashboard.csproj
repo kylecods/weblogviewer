@@ -7,18 +7,22 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+      <PackageReference Include="CliWrap" Version="3.6.6" />
+      <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
       <PackageReference Include="Grpc.AspNetCore" Version="2.65.0" />
       <PackageReference Include="Grpc.Net.Client.Web" Version="2.65.0" />
       <PackageReference Include="Grpc.Net.ClientFactory" Version="2.65.0" />
+      <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.0" />
       <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" Version="4.10.0" />
       <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.Icons" Version="4.10.0" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\Shared\Shared.csproj" />
+	   <Folder Include="wwwroot\" />
     </ItemGroup>
-
+    
     <ItemGroup>
       <Protobuf Include="FileLog\**\*.proto">
         <ProtoRoot>FileLog</ProtoRoot>

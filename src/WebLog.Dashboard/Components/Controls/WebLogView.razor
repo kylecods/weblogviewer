@@ -34,44 +34,34 @@
 
 
 <div style="height:25rem; overflow-y: auto">
-    @if (ViewModel.IsNotBusy)
-    {
-        @if (ViewModel.Logs.Any())
-        {
+
+
             <FluentDataGrid Items="@ViewModel.Logs" Virtualize="true" ItemSize="44">
-                <PropertyColumn Title="Line" Property="@(p => p.LineNumber)" Width="130px"/>
-                <PropertyColumn Title="Date" Property="@(p => p.Timestamp)" Sortable="true" Width="200px"/>
-                <TemplateColumn Title="Log Level" Class="px-4" Width="150px">
-                    <div style="background-color: @(context.Color.CssBackgroundColor); border-radius: 10px; text-align: center">
-                        <span style="color:@(context.Color.CssForegroundColor); font-size: small; font-weight: bold; padding: 5px">@context.LogLevel.ToString("G").ToUpper()</span>
-                    </div>
-                </TemplateColumn>
-                <TemplateColumn Title="Message" >
-                    <span style="width: 20ch;">@(context.State!.ToString()!.Length > 50 ? $"{context.State.ToString().AsSpan().Slice(0,50)}..." : context.State)</span>
-                </TemplateColumn>
-                <TemplateColumn Title="Actions" Width="150px">
-                    <FluentButton aria-label="View More" IconEnd="@(_showMore ? new Icons.Filled.Size16.EyeOff() : new Icons.Filled.Size16.Eye())" OnClick="@(() => OnOpenViewMore(context))"/>
-                </TemplateColumn>
+                <ChildContent>
+                    <PropertyColumn Title="Line" Property="@(p => p.LineNumber)" Width="130px"/>
+                    <PropertyColumn Title="Date" Property="@(p => p.Timestamp)" Sortable="true" Width="200px"/>
+                    <TemplateColumn Title="Log Level" Class="px-4" Width="150px">
+                        <div style="background-color: @(context.Color.CssBackgroundColor); border-radius: 10px; text-align: center">
+                            <span style="color:@(context.Color.CssForegroundColor); font-size: small; font-weight: bold; padding: 5px">@context.LogLevel.ToString("G").ToUpper()</span>
+                        </div>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Message" >
+                        <span style="width: 20ch;">@(context.State!.ToString()!.Length > 50 ? $"{context.State.ToString().AsSpan().Slice(0,50)}..." : context.State)</span>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Actions" Width="150px">
+                        <FluentButton aria-label="View More" IconEnd="@(_showMore ? new Icons.Filled.Size16.EyeOff() : new Icons.Filled.Size16.Eye())" OnClick="@(() => OnOpenViewMore(context))"/>
+                    </TemplateColumn>
+                </ChildContent>
+                <EmptyContent>
+                    <FluentIcon Value="@(new Icons.Filled.Size16.Crown())" Color="@Color.Accent" />&nbsp; Nothing to see here. Carry on!
+                </EmptyContent>
+                <LoadingContent>
+                    <FluentStack Orientation="Orientation.Vertical" HorizontalAlignment="HorizontalAlignment.Center">
+                        Loading...<br />
+                        <FluentProgress Width="240px" />
+                    </FluentStack>
+                </LoadingContent>
             </FluentDataGrid>
-        }
-        
-        else
-        {
-            <div class="row justify-content-center" style="height: 100%; width: 100%">
-                <div class="col-6 align-items-center position-relative">
-                    <span class="position-absolute top-50 start-50 translate-middle" style="font-size: large; font-weight: bolder;">No data</span>
-                </div>
-            </div>
-        }
-    }
-    else
-    {
-        <div class="row justify-content-center" style="height: 100%; width: 100%">
-            <div class="col-6 align-items-center position-relative">
-                <span class="position-absolute top-50 start-50 translate-middle" style="font-size: large; font-weight: bolder;">Loading...</span>
-            </div>
-        </div>
-    }
     
 </div>
 
@@ -85,8 +75,11 @@
         </div>
     </div>
     <div style="display: flex; width: 100%">
-        <FluentButton Appearance="Appearance.Accent" Autofocus="true" @onclick="@(() => ViewModel.ClickCommand.Execute(_fluentDialog))">Load</FluentButton>
-        <FluentSpacer />
+
+        <FluentButton Appearance="Appearance.Accent" Autofocus="true" Loading="@ViewModel.IsBusy" @onclick="@(() => ViewModel.ClickCommand.Execute(_fluentDialog))">Load</FluentButton>
+        
+        <FluentSpacer/>
+
         <FluentButton OnClick="OnDismiss">Cancel</FluentButton>
     </div>
 </FluentDialog>
@@ -117,8 +110,6 @@
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        ViewModel.LoadItemsCommand.Execute(null);
-        ViewModel.DateTime = DateTime.Today;
     }
     
     
@@ -128,6 +119,8 @@
         {
             _fluentDialog.Hide();
             _viewMoreDialog.Hide();
+            ViewModel.LoadItemsCommand.Execute(null);
+            ViewModel.DateTime = DateTime.Today;
         }
     }
     

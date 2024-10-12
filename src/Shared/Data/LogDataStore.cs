@@ -7,7 +7,7 @@ namespace Shared.Data
 	{
 		private static readonly SemaphoreSlim _semaphore = new (1);
 
-		public ObservableCollection<LogModel> Entries { get; } = new();
+		public ObservableCollection<LogModel> Entries { get; } = [];
 
 		public void AddEntry(LogModel model)
 		{

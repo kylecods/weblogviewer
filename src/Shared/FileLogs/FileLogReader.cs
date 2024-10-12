@@ -123,9 +123,10 @@ public static partial class FileLogReader
                     
                     var logEntries = Regex.Split(logContent, $"(?={timestampPattern})",RegexOptions.Compiled);
 
-                    
-                    foreach (var fileLine in logEntries)
+
+                    for (int i = 0; i < logEntries.Length; i++)
                     {
+                        string? fileLine = logEntries[i];
                         var content = fileLine;
 
                         DateTime? timestamp = null;
